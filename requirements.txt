@@ -1,0 +1,5 @@
+pyTelegramBotAPI==4.10.0
+diffusers==0.22.1
+torch==2.0.1
+transformers==4.30.2
+accelerate==0.20.3
