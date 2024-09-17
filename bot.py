@@ -6,7 +6,7 @@ from PIL import Image
 import io
 
 # Установите свой токен Telegram бота здесь
-TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
+TOKEN = '7218060489:AAEx4jhciHiBh1Vxpo-MVkHHkHXObcR2dxg'
 
 # Инициализация бота
 bot = telebot.TeleBot(TOKEN)
