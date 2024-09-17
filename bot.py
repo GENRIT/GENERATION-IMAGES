@@ -2,38 +2,46 @@ import os
 import telebot
 from diffusers import StableDiffusionPipeline
 import torch
+from PIL import Image
+import io
 
-# Вставьте сюда токен вашего Telegram-бота
-API_TOKEN = '7218060489:AAEx4jhciHiBh1Vxpo-MVkHHkHXObcR2dxg'
+# Установите свой токен Telegram бота здесь
+TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
 
 # Инициализация бота
-bot = telebot.TeleBot(API_TOKEN)
+bot = telebot.TeleBot(TOKEN)
 
-# Загрузка модели генерации изображений
-device = "cuda" if torch.cuda.is_available() else "cpu"
-pipe = StableDiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5").to(device)
+# Инициализация модели Stable Diffusion
+model_id = "runwayml/stable-diffusion-v1-5"
+pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16)
+pipe = pipe.to("cuda")
 
-# Функция для генерации изображения по текстовому запросу
-def generate_image(prompt):
-    image = pipe(prompt).images[0]
-    image_path = "generated_image.png"
-    image.save(image_path)
-    return image_path
-
-# Обработчик команд start и help
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    bot.reply_to(message, "Привет! Отправь мне текст, и я сгенерирую изображение на его основе.")
+    bot.reply_to(message, "Привет! Я бот для генерации изображений. Отправь мне текстовое описание, и я создам изображение.")
 
-# Обработчик текстовых сообщений
 @bot.message_handler(func=lambda message: True)
-def handle_text(message):
+def generate_image(message):
+    # Получаем текст от пользователя
     prompt = message.text
-    bot.reply_to(message, f"Генерирую изображение для текста: {prompt}")
-    image_path = generate_image(prompt)
-
-    with open(image_path, 'rb') as img:
-        bot.send_photo(message.chat.id, img)
+    
+    # Отправляем сообщение о начале генерации
+    bot.reply_to(message, "Начинаю генерацию изображения. Это может занять некоторое время...")
+    
+    try:
+        # Генерируем изображение
+        image = pipe(prompt).images[0]
+        
+        # Преобразуем изображение в байты
+        img_byte_arr = io.BytesIO()
+        image.save(img_byte_arr, format='PNG')
+        img_byte_arr.seek(0)
+        
+        # Отправляем изображение пользователю
+        bot.send_photo(message.chat.id, img_byte_arr, caption=f"Изображение по запросу: {prompt}")
+    except Exception as e:
+        bot.reply_to(message, f"Произошла ошибка при генерации изображения: {str(e)}")
 
 # Запуск бота
-bot.polling()
+if __name__ == '__main__':
+    bot.polling()
