@@ -31,7 +31,7 @@ def handle_text(message):
     prompt = message.text
     bot.reply_to(message, f"Генерирую изображение для текста: {prompt}")
     image_path = generate_image(prompt)
-    
+
     with open(image_path, 'rb') as img:
         bot.send_photo(message.chat.id, img)
 
